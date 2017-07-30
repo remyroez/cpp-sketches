@@ -139,7 +139,7 @@ void learn(network &network, const test_case_list_type &test_cases, const test_c
 	for (size_t i = 0; i < results.size(); ++i) {
 		if (results[i] == 0) continue;
 
-		// ノード（買ったお菓子）への接続のウェイトを調整する
+		// ノード（買ったお菓子）からの接続のウェイトを調整する
 		network.learn_connections(
 			[&](auto *p) {
 				auto in_value = test_cases[i].input_list()[p->in()];
@@ -205,17 +205,17 @@ int main()
 			}
 		);
 
-		// 入力ノード
+		// 入力ノード（お菓子）
 		network.push_input(); // 0: 310 yen
 		network.push_input(); // 1: 220 yen
 		network.push_input(); // 2:  70 yen
 
-		// 出力ノード
+		// 出力ノード（マッチ箱）
 		// 0 = 買える
 		// 1 = 買えない
 		network.push_output(0.0f, 6.f);// 3: total / 6 match
 
-		// 接続
+		// 接続（マッチ箱）
 		network.push_connection(0, 3, 1.f); // 1 match
 		network.push_connection(1, 3, 3.f); // 3 match
 		network.push_connection(2, 3, 8.f); // 8 match

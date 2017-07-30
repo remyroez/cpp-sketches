@@ -38,6 +38,9 @@ public:
 	const node_listing_type &input_nodes() const { return _input_nodes; }
 	node_listing_type &input_nodes() { return const_cast<node_listing_type &>(static_cast<const base_network *>(this)->input_nodes()); }
 
+	const node_listing_type &hidden_nodes() const { return _hidden_nodes; }
+	node_listing_type &hidden_nodes() { return const_cast<node_listing_type &>(static_cast<const base_network *>(this)->hidden_nodes()); }
+
 	const node_listing_type &output_nodes() const { return _output_nodes; }
 	node_listing_type &output_nodes() { return const_cast<node_listing_type &>(static_cast<const base_network *>(this)->output_nodes()); }
 
@@ -51,16 +54,23 @@ public:
 
 	template <class... Args>
 	node_index_type push_input(Args&&... args) {
-		push_node(std::forward<Args>(args)...);
-		input_nodes().push_back(node_list().back());
-		return (node_list().size() - 1);
+		node_index_type index = push_node(std::forward<Args>(args)...);
+		input_nodes().push_back(node(index));
+		return index;
+	}
+
+	template <class... Args>
+	node_index_type push_hidden(Args&&... args) {
+		node_index_type index = push_node(std::forward<Args>(args)...);
+		hidden_nodes().push_back(node(index));
+		return index;
 	}
 
 	template <class... Args>
 	node_index_type push_output(Args&&... args) {
-		push_node(std::forward<Args>(args)...);
-		output_nodes().push_back(node_list().back());
-		return (node_list().size() - 1);
+		node_index_type index = push_node(std::forward<Args>(args)...);
+		output_nodes().push_back(node(index));
+		return index;
 	}
 
 	template <class... Args>
@@ -73,8 +83,12 @@ public:
 		auto it = list.begin();
 		while (!list.empty()) {
 			auto out_node = node((*it)->out());
+			if (!out_node) break;
+
 			for (auto pout_connection : listing_connections_out((*it)->out())) {
+				if (pout_connection == nullptr) continue;
 				process_connection(*pout_connection);
+
 				list.erase(std::remove(list.begin(), list.end(), pout_connection), list.end());
 			}
 			out_node->set_value(activation(out_node));
@@ -89,8 +103,12 @@ public:
 		auto it = list.begin();
 		while (!list.empty()) {
 			auto out_node = node((*it)->out());
+			if (!out_node) break;
+
 			for (auto pout_connection : listing_connections_out((*it)->out())) {
+				if (pout_connection == nullptr) continue;
 				fn(pout_connection);
+
 				list.erase(std::remove(list.begin(), list.end(), pout_connection), list.end());
 			}
 			out_node->set_value(activation(out_node));
@@ -138,14 +156,16 @@ public:
 
 protected:
 	template <class... Args>
-	void push_node(Args&&... args) {
+	node_index_type push_node(Args&&... args) {
 		node_list().push_back(std::make_shared<node_type>(std::forward<Args>(args)...));
+		return (node_list().size() - 1);
 	}
 
-	void process_connection(const connection_type &connection) {
-		auto in_node = node(connection.in());
-		auto out_node = node(connection.out());
-		out_node->set_value(out_node->value() + in_node->value() * connection.weight());
+	void process_connection(const connection_type *connection) {
+		if (connection == nullptr) return;
+		auto in_node = node(connection->in());
+		auto out_node = node(connection->out());
+		out_node->set_value(out_node->value() + in_node->value() * connection->weight());
 	}
 
 	node_value_type activation(node_pointer p) {
@@ -161,6 +181,7 @@ protected:
 private:
 	node_list_type _node_list;
 	node_listing_type _input_nodes;
+	node_listing_type _hidden_nodes;
 	node_listing_type _output_nodes;
 	connection_list_type _connection_list;
 	activation_function_type _activation_function;
