@@ -4,7 +4,7 @@
 #include <array>
 #include <algorithm>
 
-#include "neural-network/neural-network.hpp"
+#include "neural_network/neural_network.hpp"
 
 namespace nn = neural_network;
 
@@ -28,6 +28,11 @@ private:
 // ネットワーク
 using network = nn::base_network<neuron>;
 
+// レイヤー
+constexpr network::layer_id_type input_layer = 0;
+constexpr network::layer_id_type hidden_layer = 1;
+constexpr network::layer_id_type output_layer = 2;
+
 // テストケースクラス
 class test_case {
 public:
@@ -44,7 +49,9 @@ public:
 	result_type test(network &network) {
 		network.reset();
 
-		auto &inputs = network.input_nodes();
+		auto &inputs = network.layer(input_layer);
+		const auto &outputs = network.layer(output_layer);
+
 		for (size_t i = 0; i < _input_list.size(); ++i) {
 			auto node = inputs[i];
 			if (auto ptr = node.lock()) {
@@ -52,17 +59,16 @@ public:
 			}
 		}
 
-		print_nodes(network.input_nodes());
+		print_nodes(inputs);
 
 		std::cout << " -> ";
 
 		network.process();
 
-		print_nodes(network.output_nodes());
+		print_nodes(outputs);
 
 		result_type ok = 0;
 
-		const auto &outputs = network.output_nodes();
 		for (size_t i = 0; i < _answer_list.size(); ++i) {
 			if (auto ptr = outputs[i].lock()) {
 				if (ptr->value() != _answer_list[i]) {
@@ -86,7 +92,7 @@ public:
 
 protected:
 	// ノードリストの出力
-	void print_nodes(network::node_listing_type nodes) {
+	void print_nodes(network::layer_type nodes) {
 		std::cout << "[ ";
 
 		bool first = true;
@@ -124,6 +130,15 @@ private:
 using test_case_list_type = std::vector<test_case>;
 
 // テスト
+test_case::result_list_type test(network &network, test_case &test_case) {
+	::test_case::result_list_type results;
+
+	results.push_back(test_case.test(network));
+
+	return std::move(results);
+}
+
+// テスト
 test_case::result_list_type test(network &network, test_case_list_type &test_cases) {
 	::test_case::result_list_type results;
 
@@ -135,26 +150,31 @@ test_case::result_list_type test(network &network, test_case_list_type &test_cas
 }
 
 // 学習
-void learn(network &network, const test_case_list_type &test_cases, const test_case::result_list_type &results) {
-	for (size_t i = 0; i < results.size(); ++i) {
-		if (results[i] == 0) continue;
+void learn(network &network, const test_case &test_case, const test_case::result_type &result) {
+	if (result == 0) return;
 
-		// ノード（買ったお菓子）からの接続のウェイトを調整する
-		network.learn_connections(
-			[&](auto *p) {
-				auto in_value = test_cases[i].input_list()[p->in()];
-				if ((in_value > 0) || (in_value < 0)) {
-					p->set_weight((float)((int)p->weight() + ((results[i] > 0) ? -1 : 1)));
-				}
-			}
-		);
-
-		// 出力ノードのしきい値を調整する
-		for (auto node : network.output_nodes()) {
-			if (auto ptr = node.lock()) {
-				ptr->set_threshold((float)((int)ptr->threshold() + ((results[i] > 0) ? 1 : -1)));
+	// ノード（買ったお菓子）からの接続のウェイトを調整する
+	network.learn_connections(
+		[&](auto *p) {
+			auto in_value = test_case.input_list()[p->in()];
+			if ((in_value > 0) || (in_value < 0)) {
+				p->set_weight((float)((int)p->weight() + ((result > 0) ? -1 : 1)));
 			}
 		}
+	);
+
+	// 出力ノードのしきい値を調整する
+	for (auto node : network.layer(::output_layer)) {
+		if (auto ptr = node.lock()) {
+			ptr->set_threshold((float)((int)ptr->threshold() + ((result > 0) ? 1 : -1)));
+		}
+	}
+}
+
+// 学習
+void learn(network &network, const test_case_list_type &test_cases, const test_case::result_list_type &results) {
+	for (size_t i = 0; i < results.size(); ++i) {
+		learn(network, test_cases[i], results[i]);
 	}
 }
 
@@ -206,14 +226,14 @@ int main()
 		);
 
 		// 入力ノード（お菓子）
-		network.push_input(); // 0: 310 yen
-		network.push_input(); // 1: 220 yen
-		network.push_input(); // 2:  70 yen
+		network.push_node(0, ::input_layer); // 0: 310 yen
+		network.push_node(1, ::input_layer); // 1: 220 yen
+		network.push_node(2, ::input_layer); // 2:  70 yen
 
 		// 出力ノード（マッチ箱）
 		// 0 = 買える
 		// 1 = 買えない
-		network.push_output(0.0f, 6.f);// 3: total / 6 match
+		network.push_node(3, ::output_layer, 0.0f, 6.f);// 3: total / 6 match
 
 		// 接続（マッチ箱）
 		network.push_connection(0, 3, 1.f); // 1 match
@@ -236,33 +256,19 @@ int main()
 			{ { 0, 0, 0 },{ 0 } },
 		};
 
-		::test_case::result_list_type results;
-		
 		std::cout << "---------- LEARN START! " << std::endl;
 
 		for (int i = 0; i < 10; ++i) {
-			results = ::test(network, test_cases);
-			::learn(network, test_cases, results);
+			std::cout << "No. " << (i + 1) << std::endl;
+			::learn(network, test_cases, ::test(network, test_cases));
 			std::cout << "----------" << std::endl;
 		}
 
-		test(network, test_cases);
+		std::cout << "Finish" << std::endl;
+		::test(network, test_cases);
 
 		std::cout << "---------- LEARN END! " << std::endl;
 
-	}
-
-	// テスト
-	{
-		::test_case_list_type test_cases = {
-			{ { 1, 1, 1 },{ 1 } },
-			{ { 1, 1, 0 },{ 1 } },
-			{ { 1, 0, 1 },{ 0 } },
-			{ { 0, 1, 1 },{ 0 } },
-			{ { 0, 0, 0 },{ 0 } },
-		};
-
-		test(network, test_cases);
 	}
 
 	print_network(network);

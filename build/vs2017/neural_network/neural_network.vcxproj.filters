@@ -18,21 +18,21 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="neural-network.cpp">
+    <ClCompile Include="neural_network.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\include\neural-network\neuron.hpp">
+    <ClInclude Include="..\..\..\include\neural_network\neuron.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\neural-network\neural-network.hpp">
+    <ClInclude Include="..\..\..\include\neural_network\neural_network.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\neural-network\network.hpp">
+    <ClInclude Include="..\..\..\include\neural_network\network.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\neural-network\connection.hpp">
+    <ClInclude Include="..\..\..\include\neural_network\connection.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

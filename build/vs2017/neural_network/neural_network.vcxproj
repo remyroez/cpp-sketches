@@ -144,13 +144,13 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="neural-network.cpp" />
+    <ClCompile Include="neural_network.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\include\neural-network\connection.hpp" />
-    <ClInclude Include="..\..\..\include\neural-network\network.hpp" />
-    <ClInclude Include="..\..\..\include\neural-network\neural-network.hpp" />
-    <ClInclude Include="..\..\..\include\neural-network\neuron.hpp" />
+    <ClInclude Include="..\..\..\include\neural_network\connection.hpp" />
+    <ClInclude Include="..\..\..\include\neural_network\network.hpp" />
+    <ClInclude Include="..\..\..\include\neural_network\neural_network.hpp" />
+    <ClInclude Include="..\..\..\include\neural_network\neuron.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
