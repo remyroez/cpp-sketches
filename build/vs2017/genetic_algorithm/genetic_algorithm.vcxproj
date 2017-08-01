@@ -20,9 +20,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{B2700C4E-2BC0-4EFE-8BD2-1A2583BB16CA}</ProjectGuid>
+    <ProjectGuid>{1C85D47F-190C-4AFA-9192-F2E8E9A00413}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>neuralnetwork</RootNamespace>
+    <RootNamespace>genetic_algorithm</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -141,13 +141,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="neural_network.cpp" />
+    <ClCompile Include="genetic_algorithm.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\include\neural_network\connection.hpp" />
-    <ClInclude Include="..\..\..\include\neural_network\network.hpp" />
-    <ClInclude Include="..\..\..\include\neural_network\neural_network.hpp" />
-    <ClInclude Include="..\..\..\include\neural_network\neuron.hpp" />
+    <ClInclude Include="..\..\..\include\genetic_algorithm\genetic_algorithm.hpp" />
+    <ClInclude Include="..\..\..\include\genetic_algorithm\chromosome.hpp" />
+    <ClInclude Include="..\..\..\include\genetic_algorithm\engine.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -15,21 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="neural_network.cpp">
+    <ClCompile Include="genetic_algorithm.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\include\neural_network\neuron.hpp">
+    <ClInclude Include="..\..\..\include\genetic_algorithm\genetic_algorithm.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\neural_network\neural_network.hpp">
+    <ClInclude Include="..\..\..\include\genetic_algorithm\chromosome.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\neural_network\network.hpp">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\neural_network\connection.hpp">
+    <ClInclude Include="..\..\..\include\genetic_algorithm\engine.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

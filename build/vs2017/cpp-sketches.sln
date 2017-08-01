@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "neural_network", "neural_network\neural_network.vcxproj", "{B2700C4E-2BC0-4EFE-8BD2-1A2583BB16CA}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "genetic_algorithm", "genetic_algorithm\genetic_algorithm.vcxproj", "{1C85D47F-190C-4AFA-9192-F2E8E9A00413}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{B2700C4E-2BC0-4EFE-8BD2-1A2583BB16CA}.Release|x64.Build.0 = Release|x64
 		{B2700C4E-2BC0-4EFE-8BD2-1A2583BB16CA}.Release|x86.ActiveCfg = Release|Win32
 		{B2700C4E-2BC0-4EFE-8BD2-1A2583BB16CA}.Release|x86.Build.0 = Release|Win32
+		{1C85D47F-190C-4AFA-9192-F2E8E9A00413}.Debug|x64.ActiveCfg = Debug|x64
+		{1C85D47F-190C-4AFA-9192-F2E8E9A00413}.Debug|x64.Build.0 = Debug|x64
+		{1C85D47F-190C-4AFA-9192-F2E8E9A00413}.Debug|x86.ActiveCfg = Debug|Win32
+		{1C85D47F-190C-4AFA-9192-F2E8E9A00413}.Debug|x86.Build.0 = Debug|Win32
+		{1C85D47F-190C-4AFA-9192-F2E8E9A00413}.Release|x64.ActiveCfg = Release|x64
+		{1C85D47F-190C-4AFA-9192-F2E8E9A00413}.Release|x64.Build.0 = Release|x64
+		{1C85D47F-190C-4AFA-9192-F2E8E9A00413}.Release|x86.ActiveCfg = Release|Win32
+		{1C85D47F-190C-4AFA-9192-F2E8E9A00413}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
