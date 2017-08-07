@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\entity_component_system">
+      <UniqueIdentifier>{224b814b-4988-4022-b671-90ccc5e76261}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\utility">
+      <UniqueIdentifier>{ea9753ee-8008-40b7-b209-c888745c39c6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="entity_component_system.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\include\entity_component_system\entity.hpp">
+      <Filter>ヘッダー ファイル\entity_component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\entity_component_system\entity_component_system.hpp">
+      <Filter>ヘッダー ファイル\entity_component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\entity_component_system\system.hpp">
+      <Filter>ヘッダー ファイル\entity_component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\utility\utility.hpp">
+      <Filter>ヘッダー ファイル\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\utility\id_pool.hpp">
+      <Filter>ヘッダー ファイル\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\entity_component_system\world.hpp">
+      <Filter>ヘッダー ファイル\entity_component_system</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\utility\for_each.hpp">
+      <Filter>ヘッダー ファイル\utility</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
