@@ -32,9 +32,24 @@ public:
 public:
 	system() {}
 
+	template <class F>
+	decltype(auto) operator()(F &f) {
+		return f(*this);
+	}
+
+	template <class F>
+	decltype(auto) operator()(const F &f) const {
+		return f(*this);
+	}
+
 public:
 	template <std::size_t Index>
 	decltype(auto) get_members() {
+		return std::get<Index>(data());
+	}
+
+	template <std::size_t Index>
+	decltype(auto) get_members() const {
 		return std::get<Index>(data());
 	}
 

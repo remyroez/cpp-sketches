@@ -4,6 +4,7 @@
 
 #include <tuple>
 #include <deque>
+#include <functional>
 
 #include "utility/id_pool.hpp"
 #include "utility/for_each.hpp"
@@ -26,17 +27,30 @@ public:
 	using entity_pool = utility::id_pool<entity_id>;
 	using entity_list_type = std::deque<entity_id>;
 
+	template <class T>
+	using behavior = std::function<T(world &)>;
+
 	static constexpr size_t system_size = std::tuple_size_v<system_data>;
 
 public:
 	world() {}
 
+	template <class F>
+	decltype(auto) operator()(F &f) {
+		return f(*this);
+	}
+
+	template <class F>
+	decltype(auto) operator()(F &f) const {
+		return f(*this);
+	}
+
 public:
 	template <size_t I>
-	const auto &get_system() const { return std::get<I>(_system_data); }
+	decltype(auto) get_system() const { return std::get<I>(_system_data); }
 
 	template <size_t I>
-	auto &get_system() { return std::get<I>(_system_data); }
+	decltype(auto) get_system() { return std::get<I>(_system_data); }
 
 	const entity_list_type &entities() const { return _entity_list; }
 
@@ -97,6 +111,26 @@ public:
 	template <size_t I, std::size_t Member>
 	decltype(auto) get_members() {
 		return get_system<I>().get_members<Member>();
+	}
+
+	template <std::size_t Index, class Function>
+	decltype(auto) invoke_system(Function &f) {
+		return f(*this, get_system<Index>());
+	}
+
+	template <std::size_t Index, class Function>
+	decltype(auto) invoke_system(const Function &f) const {
+		return f(*this, get_system<Index>());
+	}
+
+	template <std::size_t Index, class Function>
+	decltype(auto) invoke_system(Function &&f) {
+		return f(*this, get_system<Index>());
+	}
+
+	template <std::size_t Index, class Function>
+	decltype(auto) invoke_system(const Function &&f) const {
+		return f(*this, get_system<Index>());
 	}
 
 protected:

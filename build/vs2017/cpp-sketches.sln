@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "genetic_algorithm", "geneti
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "entity_component_system", "entity_component_system\entity_component_system.vcxproj", "{14FF521C-5C97-4078-9366-BD047C1BF15D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSiv3D_test", "OpenSiv3D_test\OpenSiv3D_test.vcxproj", "{396BF707-68A5-48BD-BF52-4EFE99C03D8E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,6 +43,14 @@ Global
 		{14FF521C-5C97-4078-9366-BD047C1BF15D}.Release|x64.Build.0 = Release|x64
 		{14FF521C-5C97-4078-9366-BD047C1BF15D}.Release|x86.ActiveCfg = Release|Win32
 		{14FF521C-5C97-4078-9366-BD047C1BF15D}.Release|x86.Build.0 = Release|Win32
+		{396BF707-68A5-48BD-BF52-4EFE99C03D8E}.Debug|x64.ActiveCfg = Debug|x64
+		{396BF707-68A5-48BD-BF52-4EFE99C03D8E}.Debug|x64.Build.0 = Debug|x64
+		{396BF707-68A5-48BD-BF52-4EFE99C03D8E}.Debug|x86.ActiveCfg = Debug|Win32
+		{396BF707-68A5-48BD-BF52-4EFE99C03D8E}.Debug|x86.Build.0 = Debug|Win32
+		{396BF707-68A5-48BD-BF52-4EFE99C03D8E}.Release|x64.ActiveCfg = Release|x64
+		{396BF707-68A5-48BD-BF52-4EFE99C03D8E}.Release|x64.Build.0 = Release|x64
+		{396BF707-68A5-48BD-BF52-4EFE99C03D8E}.Release|x86.ActiveCfg = Release|Win32
+		{396BF707-68A5-48BD-BF52-4EFE99C03D8E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
