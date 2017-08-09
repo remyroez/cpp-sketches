@@ -27,10 +27,69 @@ public:
 	using entity_pool = utility::id_pool<entity_id>;
 	using entity_list_type = std::deque<entity_id>;
 
-	template <class T>
-	using behavior = std::function<T(world &)>;
+	class entity {
+	public:
+		using world = world;
 
-	static constexpr size_t system_size = std::tuple_size_v<system_data>;
+		template <size_t I>
+		using system = world::system<I>;
+
+		template <size_t I>
+		using component = world::component<I>;
+
+	public:
+		entity(world &w, entity_id id) : _world(w), _id(id) {}
+
+		entity(const entity &other) = delete;
+		entity(entity &&other) : _world(other._world), _id(other._id) {}
+
+		entity &operator=(const entity &other) = delete;
+		entity &operator=(entity &&other) = default;
+
+		operator entity_id() const { return id(); }
+
+		entity_id id() const { return _id; }
+
+		template <size_t I = 0>
+		decltype(auto) get_system() const { return _world.get_system<I>(); }
+
+		template <size_t I = 0>
+		decltype(auto) get_system() { return _world.get_system<I>(); }
+
+		template <size_t I = 0>
+		void add_component(component<I> &&initializer) {
+			_world.add_component<I>(_id, std::forward<component<I>>(initializer));
+		}
+
+		template <size_t I = 0, class... Args>
+		void emplace_component(Args&&... args) {
+			_world.emplace_component<I>(_id, std::forward<Args>(args)...);
+		}
+
+		template <size_t I = 0>
+		void remove_component() {
+			_world.remove_component<I>(_id);
+		}
+
+		decltype(auto) get_component() const {
+			return _world.get_component(_id);
+		}
+
+		decltype(auto) get_component() {
+			return _world.get_component(_id);
+		}
+
+		void destroy() {
+			_world.remove_entity(_id);
+			_id = invalid_entity_id;
+		}
+
+	private:
+		world &_world;
+		entity_id _id;
+	};
+
+	static constexpr size_t system_size() { return std::tuple_size_v<system_data>; }
 
 public:
 	world() {}
@@ -46,19 +105,26 @@ public:
 	}
 
 public:
-	template <size_t I>
+	template <size_t I = 0>
 	decltype(auto) get_system() const { return std::get<I>(_system_data); }
 
-	template <size_t I>
+	template <size_t I = 0>
 	decltype(auto) get_system() { return std::get<I>(_system_data); }
 
 	const entity_list_type &entities() const { return _entity_list; }
 
+	template <size_t I = 0>
+	decltype(auto) system_entities() const {
+		return get_system<I>().entities();
+	}
+
+	size_t entity_size() const { return entities().size(); }
+
 public:
-	entity_id make_entity() {
+	entity make_entity() {
 		entity_id id = _entity_pool.allocate();
 		entity_list().push_back(id);
-		return id;
+		return entity(*this, id);
 	}
 
 	void remove_entity(entity_id id) {
@@ -83,52 +149,52 @@ public:
 		entity_list().clear();
 	}
 
-	template <size_t I>
+	template <size_t I = 0>
 	void add_component(entity_id id, component<I> &&initializer) {
 		get_system<I>().add_component(id, initializer);
 	}
 
-	template <size_t I, class... Args>
-	void emplace(entity_id id, Args&&... args) {
-		get_system<I>().emplace(id, std::forward<Args>(args)...);
+	template <size_t I = 0, class... Args>
+	void emplace_component(entity_id id, Args&&... args) {
+		get_system<I>().emplace_component(id, std::forward<Args>(args)...);
 	}
 
-	template <size_t I>
+	template <size_t I = 0>
 	void remove_component(entity_id id) {
 		get_system<I>().remove_component(id);
 	}
 
-	template <size_t I>
+	template <size_t I = 0>
 	decltype(auto) get_component(entity_id id) const {
 		return get_system<I>().get_component(id);
 	}
 
-	template <size_t I>
+	template <size_t I = 0>
 	decltype(auto) get_component(entity_id id) {
 		return get_system<I>().get_component(id);
 	}
 
-	template <size_t I, std::size_t Member>
+	template <size_t I = 0, std::size_t Member>
 	decltype(auto) get_members() {
 		return get_system<I>().get_members<Member>();
 	}
 
-	template <std::size_t Index, class Function>
+	template <std::size_t Index = 0, class Function>
 	decltype(auto) invoke_system(Function &f) {
 		return f(*this, get_system<Index>());
 	}
 
-	template <std::size_t Index, class Function>
+	template <std::size_t Index = 0, class Function>
 	decltype(auto) invoke_system(const Function &f) const {
 		return f(*this, get_system<Index>());
 	}
 
-	template <std::size_t Index, class Function>
+	template <std::size_t Index = 0, class Function>
 	decltype(auto) invoke_system(Function &&f) {
 		return f(*this, get_system<Index>());
 	}
 
-	template <std::size_t Index, class Function>
+	template <std::size_t Index = 0, class Function>
 	decltype(auto) invoke_system(const Function &&f) const {
 		return f(*this, get_system<Index>());
 	}
