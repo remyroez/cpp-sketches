@@ -199,6 +199,26 @@ public:
 		return f(*this, get_system<Index>());
 	}
 
+	template <class F>
+	void for_each_system(F &&f) {
+		utility::for_each_in_tuple(_system_data, f);
+	}
+
+	template <class F>
+	void for_each_system(const F &&f) const {
+		utility::for_each_in_tuple(_system_data, f);
+	}
+
+	template <class F>
+	void for_each_system(F &f) {
+		utility::for_each_in_tuple(_system_data, f);
+	}
+
+	template <class F>
+	void for_each_system(const F &f) const {
+		utility::for_each_in_tuple(_system_data, f);
+	}
+
 protected:
 	entity_list_type &entity_list() { return _entity_list; }
 

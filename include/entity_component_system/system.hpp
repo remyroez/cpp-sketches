@@ -75,7 +75,7 @@ public:
 	}
 
 	void add_component(entity_id id) {
-		add_component(id, component{});
+		add_component(id, make_component());
 	}
 
 	void emplace_component(entity_id id, Args&&... args) {
@@ -83,10 +83,12 @@ public:
 	}
 
 	void remove_component(entity_id id) {
-		auto index = get_component_index(id);
-		get_members<0>()[index] = invalid_entity_id;
-		free_component_index(index);
-		deregister_entity(id);
+		if (has_component(id)) {
+			auto index = get_component_index(id);
+			get_members<0>()[index] = invalid_entity_id;
+			free_component_index(index);
+			deregister_entity(id);
+		}
 	}
 
 	decltype(auto) get_component(entity_id id) const {
@@ -95,6 +97,24 @@ public:
 
 	decltype(auto) get_component(entity_id id) {
 		return get_component_from_index(get_component_index(id));
+	}
+
+	bool has_component(entity_id id) const {
+		return entity_map().find(id) != entity_map().end();
+	}
+
+	bool validate_component(entity_id id) const {
+		return has_component(id) && (get_member<0>(id) != invalid_entity_id);
+	}
+
+	template <std::size_t Index>
+	decltype(auto) get_member(entity_id id) const {
+		return get_members<Index>()[get_component_index(id)];
+	}
+
+	template <std::size_t Index>
+	decltype(auto) get_member(entity_id id) {
+		return get_members<Index>()[get_component_index(id)];
 	}
 
 	void clear() {
