@@ -3,6 +3,7 @@
 #include <functional>
 #include <shared_mutex>
 #include <thread>
+#include <future>
 
 #include "entity_component_system/entity_component_system.hpp"
 
@@ -148,15 +149,15 @@ void addEffects(World &world, int num = 1) {
 
 using thread_list = std::vector<std::thread>;
 
-template <class F>
-void push_thread(thread_list &threads, F &&f) {
-	threads.push_back(std::thread(f));
-}
+template <class T>
+struct task {
+	using function_type = std::function<T>;
 
-template <class F>
-void push_thread(thread_list &threads, F &f) {
-	threads.push_back(std::thread(f));
-}
+	task(function_type f) : function(f) {}
+
+	std::condition_variable condition;
+	function_type function;
+};
 
 } // namespace
 
@@ -174,225 +175,303 @@ void Main()
 
 	const Texture textureCat(Emoji(L"🐈"), TextureDesc::Mipped);
 
-	std::vector<std::thread> threads;
+	std::mutex main_mutex;
+	bool update = false;
+	std::condition_variable cond;
+	double delta = 0;
 
-	while (System::Update())
+	std::vector<std::future<bool>> futures;
 	{
-		Window::SetTitle(Profiler::FPS(), L" FPS : entities=", world.entity_size());
+		std::vector<std::packaged_task<bool()>> tasks;
 
-		auto rect = Window::ClientRect();
-
-		push_thread(threads, 
-			[&rect, &world]() {
-				if (rect.leftClicked()) {
-					addEffects(world, 10);
-				}
-			}
-		);
-
-		push_thread(threads,
-			[&world, &num]() {
-				if (KeySpace.down()) {
-					resetBalls(world, num);
-				}
-			}
-		);
-
-		push_thread(threads,
+		tasks.emplace_back(
 			[&]() {
-				auto &system = world.get_system<world_system::life>();
-				auto &circle_sys = world.get_system<world_system::color>();
+				while (true) {
+					{
+						std::unique_lock<std::mutex> main_lock(main_mutex);
+						cond.wait(main_lock, [&update] { return update; });
+					}
 
-				//lock_guard lock(system.mutex());
+					auto &system = world.get_system<world_system::life>();
+					auto &circle_sys = world.get_system<world_system::color>();
 
-				auto &entities = system.entities();
+					//lock_guard lock(system.mutex());
 
-				size_t size;
-				{
-					shared_lock slock(system.mutex());
-					size = entities.size();
-				}
+					auto &entities = system.entities();
 
-				auto &lifes = system.get_members<life_component::life>();
-				for (size_t i = 0; i < size; ++i) {
-					ecs::entity_id entity;
+					size_t size;
 					{
 						shared_lock slock(system.mutex());
-						entity = entities[i];
+						size = entities.size();
 					}
-					if (entity == ecs::invalid_entity_id) continue;
 
-					{
-						lock_guard lock(system.mutex());
-						lifes[i].current_life -= System::DeltaTime();
-					}
-					{
-						life_t life;
+					auto &lifes = system.get_members<life_component::life>();
+					for (size_t i = 0; i < size; ++i) {
+						ecs::entity_id entity;
 						{
 							shared_lock slock(system.mutex());
-							life = lifes[i];
+							entity = entities[i];
 						}
-						if (life.current_life < 0) {
-							lock_guard lockw(world.mutex());
-							world.remove_entity(entity);
+						if (entity == ecs::invalid_entity_id) continue;
 
-						} else if (circle_sys.mutex().try_lock()) {
-							if (circle_sys.validate_component(entity)) {
-								auto &color = circle_sys.get_member<color_component::color>(entity);
-								color.a = life.current_life / life.initial_life;
+						{
+							lock_guard lock(system.mutex());
+							lifes[i].current_life -= delta;
+						}
+						{
+							life_t life;
+							{
+								shared_lock slock(system.mutex());
+								life = lifes[i];
 							}
+							if (life.current_life < 0) {
+								lock_guard lockw(world.mutex());
+								world.remove_entity(entity);
+
+							} else if (circle_sys.mutex().try_lock()) {
+								if (circle_sys.validate_component(entity)) {
+									auto &color = circle_sys.get_member<color_component::color>(entity);
+									color.a = life.current_life / life.initial_life;
+								}
+								circle_sys.mutex().unlock();
+							}
+						}
+					}
+				}
+				return true;
+			}
+		);
+
+		tasks.emplace_back(
+			[&]() {
+				while (true) {
+					{
+						std::unique_lock<std::mutex> main_lock(main_mutex);
+						cond.wait(main_lock, [&update] { return update; });
+					}
+
+					auto &system = world.get_system<world_system::color_transition>();
+					auto &circle_sys = world.get_system<world_system::color>();
+					if (!system.mutex().try_lock_shared()) continue;
+					//shared_lock slock(system.mutex());
+					//shared_lock slock2(circle_sys.mutex());
+
+					auto &entities = system.entities();
+
+					auto &trans = system.get_members<color_transition_component::hue>();
+					for (size_t i = 0; i < entities.size(); ++i) {
+						ecs::entity_id entity = entities[i];
+						if (entity == ecs::invalid_entity_id) continue;
+
+						{
+							shared_lock lockc(circle_sys.mutex());
+							if (!circle_sys.validate_component(entities[i])) continue;
+						}
+						if (circle_sys.mutex().try_lock()) {
+							//lock_guard lockc(circle_sys.mutex());
+							auto &color = circle_sys.get_member<color_component::color>(entities[i]);
+							color.h += trans[i] * delta;
+							if (color.h <   0) color.h += 360;
+							if (color.h > 360) color.h -= 360;
 							circle_sys.mutex().unlock();
 						}
 					}
+
+					system.mutex().unlock_shared();
 				}
+				return true;
 			}
 		);
 
-		push_thread(threads,
+		tasks.emplace_back(
 			[&]() {
-				auto &system = world.get_system<world_system::color_transition>();
-				auto &circle_sys = world.get_system<world_system::color>();
-				if (!system.mutex().try_lock_shared()) return;
-				//shared_lock slock(system.mutex());
-				//shared_lock slock2(circle_sys.mutex());
-
-				auto &entities = system.entities();
-
-				auto &trans = system.get_members<color_transition_component::hue>();
-				for (size_t i = 0; i < entities.size(); ++i) {
-					ecs::entity_id entity = entities[i];
-					if (entity == ecs::invalid_entity_id) continue;
-
+				while (true) {
 					{
-						shared_lock lockc(circle_sys.mutex());
-						if (!circle_sys.validate_component(entities[i])) continue;
-					}
-					if (circle_sys.mutex().try_lock()) {
-						//lock_guard lockc(circle_sys.mutex());
-						auto &color = circle_sys.get_member<color_component::color>(entities[i]);
-						color.h += trans[i] * System::DeltaTime();
-						if (color.h <   0) color.h += 360;
-						if (color.h > 360) color.h -= 360;
-						circle_sys.mutex().unlock();
-					}
-				}
-
-				system.mutex().unlock_shared();
-			}
-		);
-
-		push_thread(threads,
-			[&]() {
-				auto &system = world.get_system<world_system::gravity>();
-				auto &move_sys = world.get_system<world_system::move>();
-				shared_lock slock(system.mutex());
-				//lock_guard lock2(move_sys.mutex());
-				if (!move_sys.mutex().try_lock()) return;
-
-				auto &entities = system.entities();
-
-				for (size_t i = 0; i < entities.size(); ++i) {
-					if (entities[i] == ecs::invalid_entity_id) continue;
-
-					{
-						if (!move_sys.validate_component(entities[i])) continue;
+						std::unique_lock<std::mutex> main_lock(main_mutex);
+						cond.wait(main_lock, [&update] { return update; });
 					}
 
-					{
-						auto &velocity = move_sys.get_member<move_component::velocity>(entities[i]);
-						velocity.y += 9.80665 * System::DeltaTime() * 100;
-					}
-				}
-				move_sys.mutex().unlock();
-			}
-		);
-
-		push_thread(threads,
-			[&]() {
-				auto &system = world.get_system<world_system::move>();
-				auto &circle_sys = world.get_system<world_system::circle>();
-				
-				//lock_guard lock(system.mutex());
-
-				auto &entities = system.entities();
-				auto &velocities = system.get_members<move_component::velocity>();
-
-				size_t size;
-				{
+					auto &system = world.get_system<world_system::gravity>();
+					auto &move_sys = world.get_system<world_system::move>();
 					shared_lock slock(system.mutex());
-					size = entities.size();
-				}
+					//lock_guard lock2(move_sys.mutex());
+					if (!move_sys.mutex().try_lock()) continue;
 
-				for (size_t i = 0; i < size; ++i) {
-					ecs::entity_id entity;
+					auto &entities = system.entities();
+
+					for (size_t i = 0; i < entities.size(); ++i) {
+						if (entities[i] == ecs::invalid_entity_id) continue;
+
+						{
+							if (!move_sys.validate_component(entities[i])) continue;
+						}
+
+						{
+							auto &velocity = move_sys.get_member<move_component::velocity>(entities[i]);
+							velocity.y += 9.80665 * delta * 100;
+						}
+					}
+					move_sys.mutex().unlock();
+				}
+				return true;
+			}
+		);
+
+		tasks.emplace_back(
+			[&]() {
+				while (true) {
+					{
+						std::unique_lock<std::mutex> main_lock(main_mutex);
+						cond.wait(main_lock, [&update] { return update; });
+					}
+
+					auto &system = world.get_system<world_system::move>();
+					auto &circle_sys = world.get_system<world_system::circle>();
+
+					//lock_guard lock(system.mutex());
+
+					auto &entities = system.entities();
+					auto &velocities = system.get_members<move_component::velocity>();
+
+					size_t size;
 					{
 						shared_lock slock(system.mutex());
-						entity = entities[i];
+						size = entities.size();
 					}
-					if (entity == ecs::invalid_entity_id) continue;
 
-					{
-						shared_lock slock(circle_sys.mutex());
-						if (!circle_sys.validate_component(entity)) continue;
-					}
-					if (system.mutex().try_lock()) {
-						//lock_guard locks(system.mutex());
-						//lock_guard lockc(circle_sys.mutex());
-						if (circle_sys.mutex().try_lock()) {
-							auto &center = circle_sys.get_member<circle_component::circle>(entity).center;
-							auto &velocity = velocities[i];
-							center += velocity * System::DeltaTime();
-							constexpr auto cor = 0.9;
-							if (center.x < 0) {
-								center.x = 0;
-								velocity.x = -velocity.x * cor;
-
-							} else if (center.x > rect.w) {
-								center.x = rect.w;
-								velocity.x = -velocity.x * cor;
-							}
-							if (center.y < 0) {
-								center.y = 0;
-								velocity.y = -velocity.y * cor;
-
-							} else if (center.y > rect.h) {
-								center.y = rect.h;
-								velocity.y = -velocity.y * cor;
-							}
-							circle_sys.mutex().unlock();
+					for (size_t i = 0; i < size; ++i) {
+						ecs::entity_id entity;
+						{
+							shared_lock slock(system.mutex());
+							entity = entities[i];
 						}
-						system.mutex().unlock();
+						if (entity == ecs::invalid_entity_id) continue;
+
+						{
+							shared_lock slock(circle_sys.mutex());
+							if (!circle_sys.validate_component(entity)) continue;
+						}
+						{
+							lock_guard locks(system.mutex());
+							lock_guard lockc(circle_sys.mutex());
+							{
+								auto &center = circle_sys.get_member<circle_component::circle>(entity).center;
+								auto &velocity = velocities[i];
+								center += velocity * delta;
+								constexpr auto cor = 0.9;
+								auto rect = Window::ClientRect();
+								if (center.x < 0) {
+									center.x = 0;
+									velocity.x = -velocity.x * cor;
+
+								} else if (center.x > rect.w) {
+									center.x = rect.w;
+									velocity.x = -velocity.x * cor;
+								}
+								if (center.y < 0) {
+									center.y = 0;
+									velocity.y = -velocity.y * cor;
+
+								} else if (center.y > rect.h) {
+									center.y = rect.h;
+									velocity.y = -velocity.y * cor;
+								}
+							}
+						}
 					}
 				}
+				return true;
 			}
 		);
-
-		push_thread(threads,
+#if 0
+		tasks.emplace_back(
 			[&]() {
-				auto &system = world.get_system<world_system::circle>();
-				auto &color_sys = world.get_system<world_system::color>();
-				shared_lock lock(system.mutex());
-				const auto &entities = system.entities();
-				const auto &circles = system.get_members<circle_component::circle>();
-				for (size_t i = 0; i < circles.size(); ++i) {
-					if (entities[i] == ecs::invalid_entity_id) continue;
-
-					HSV color;
+				while (true) {
 					{
-						shared_lock lockc(color_sys.mutex());
-						color = color_sys.get_member<color_component::color>(entities[i]);
+						std::unique_lock<std::mutex> main_lock(main_mutex);
+						cond.wait(main_lock, [&update] { return update; });
 					}
-					circles[i].draw(color);
+
+					auto &system = world.get_system<world_system::circle>();
+					auto &color_sys = world.get_system<world_system::color>();
+					shared_lock lock(system.mutex());
+					const auto &entities = system.entities();
+					const auto &circles = system.get_members<circle_component::circle>();
+					for (size_t i = 0; i < circles.size(); ++i) {
+						if (entities[i] == ecs::invalid_entity_id) continue;
+
+						HSV color;
+						{
+							shared_lock lockc(color_sys.mutex());
+							color = color_sys.get_member<color_component::color>(entities[i]);
+						}
+						//circles[i].draw(color);
+					}
 				}
+				return true;
 			}
 		);
+#endif
+		//std::this_thread::yield();
 
-		std::this_thread::yield();
+		std::for_each(
+			tasks.begin(),
+			tasks.end(),
+			[&futures](auto &task) {
+				futures.emplace_back(task.get_future());
+				std::thread t(std::move(task));
+				t.detach();
+			}
+		);
+	}
 
-		for (auto &thread : threads) {
-			thread.join();
+	while (true)
+	{
+		{
+			std::lock_guard<std::mutex> main_lock(main_mutex);
+			if (!System::Update()) break;
+			update = true;
+			delta = System::DeltaTime();
 		}
-		threads.clear();
+
+		Window::SetTitle(Profiler::FPS(), L" FPS : entities=", world.entity_size());
+
+		cond.notify_all();
+		{
+			std::lock_guard<std::mutex> main_lock(main_mutex);
+
+			auto rect = Window::ClientRect();
+			if (rect.leftClicked()) {
+				addEffects(world, 10);
+			}
+			if (KeySpace.down()) {
+				resetBalls(world, num);
+			}
+		}
+		{
+			std::lock_guard<std::mutex> main_lock(main_mutex);
+
+			auto &system = world.get_system<world_system::circle>();
+			auto &color_sys = world.get_system<world_system::color>();
+			shared_lock lock(system.mutex());
+			const auto &entities = system.entities();
+			const auto &circles = system.get_members<circle_component::circle>();
+			for (size_t i = 0; i < circles.size(); ++i) {
+				if (entities[i] == ecs::invalid_entity_id) continue;
+
+				HSV color;
+				{
+					shared_lock lockc(color_sys.mutex());
+					color = color_sys.get_member<color_component::color>(entities[i]);
+				}
+				circles[i].draw(color);
+			}
+		}
+
+		{
+			std::lock_guard<std::mutex> main_lock(main_mutex);
+			update = false;
+		}
 #if 0
 		font(L"Hello, Siv3D!🐣").drawAt(Window::Center(), Palette::Black);
 		font(Cursor::Pos()).draw(20, 400, ColorF(0.6));
