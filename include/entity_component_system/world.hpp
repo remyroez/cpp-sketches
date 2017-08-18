@@ -71,12 +71,14 @@ public:
 			_world.remove_component<I>(_id);
 		}
 
+		template <size_t I = 0>
 		decltype(auto) get_component() const {
-			return _world.get_component(_id);
+			return _world.get_component<I>(_id);
 		}
 
+		template <size_t I = 0>
 		decltype(auto) get_component() {
-			return _world.get_component(_id);
+			return _world.get_component<I>(_id);
 		}
 
 		void destroy() {

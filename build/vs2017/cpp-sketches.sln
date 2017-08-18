@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.14
+VisualStudioVersion = 15.0.26730.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "neural_network", "neural_network\neural_network.vcxproj", "{B2700C4E-2BC0-4EFE-8BD2-1A2583BB16CA}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "entity_component_system", "entity_component_system\entity_component_system.vcxproj", "{14FF521C-5C97-4078-9366-BD047C1BF15D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSiv3D_test", "OpenSiv3D_test\OpenSiv3D_test.vcxproj", "{396BF707-68A5-48BD-BF52-4EFE99C03D8E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSiv3D_flappy_boid", "OpenSiv3D_flappy_boid\OpenSiv3D_flappy_boid.vcxproj", "{7384B077-6186-4AEB-8E9A-600219216EAB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,8 +53,19 @@ Global
 		{396BF707-68A5-48BD-BF52-4EFE99C03D8E}.Release|x64.Build.0 = Release|x64
 		{396BF707-68A5-48BD-BF52-4EFE99C03D8E}.Release|x86.ActiveCfg = Release|Win32
 		{396BF707-68A5-48BD-BF52-4EFE99C03D8E}.Release|x86.Build.0 = Release|Win32
+		{7384B077-6186-4AEB-8E9A-600219216EAB}.Debug|x64.ActiveCfg = Debug|x64
+		{7384B077-6186-4AEB-8E9A-600219216EAB}.Debug|x64.Build.0 = Debug|x64
+		{7384B077-6186-4AEB-8E9A-600219216EAB}.Debug|x86.ActiveCfg = Debug|Win32
+		{7384B077-6186-4AEB-8E9A-600219216EAB}.Debug|x86.Build.0 = Debug|Win32
+		{7384B077-6186-4AEB-8E9A-600219216EAB}.Release|x64.ActiveCfg = Release|x64
+		{7384B077-6186-4AEB-8E9A-600219216EAB}.Release|x64.Build.0 = Release|x64
+		{7384B077-6186-4AEB-8E9A-600219216EAB}.Release|x86.ActiveCfg = Release|Win32
+		{7384B077-6186-4AEB-8E9A-600219216EAB}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8C1FB95E-2426-4484-9875-00A6A045B1E2}
 	EndGlobalSection
 EndGlobal
