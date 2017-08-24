@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSiv3D_test", "OpenSiv3D
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSiv3D_flappy_boid", "OpenSiv3D_flappy_boid\OpenSiv3D_flappy_boid.vcxproj", "{7384B077-6186-4AEB-8E9A-600219216EAB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "neuroevolution", "neuroevolution\neuroevolution.vcxproj", "{F6442B70-4959-453C-ABBE-17BEA3B2482F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -61,6 +63,14 @@ Global
 		{7384B077-6186-4AEB-8E9A-600219216EAB}.Release|x64.Build.0 = Release|x64
 		{7384B077-6186-4AEB-8E9A-600219216EAB}.Release|x86.ActiveCfg = Release|Win32
 		{7384B077-6186-4AEB-8E9A-600219216EAB}.Release|x86.Build.0 = Release|Win32
+		{F6442B70-4959-453C-ABBE-17BEA3B2482F}.Debug|x64.ActiveCfg = Debug|x64
+		{F6442B70-4959-453C-ABBE-17BEA3B2482F}.Debug|x64.Build.0 = Debug|x64
+		{F6442B70-4959-453C-ABBE-17BEA3B2482F}.Debug|x86.ActiveCfg = Debug|Win32
+		{F6442B70-4959-453C-ABBE-17BEA3B2482F}.Debug|x86.Build.0 = Debug|Win32
+		{F6442B70-4959-453C-ABBE-17BEA3B2482F}.Release|x64.ActiveCfg = Release|x64
+		{F6442B70-4959-453C-ABBE-17BEA3B2482F}.Release|x64.Build.0 = Release|x64
+		{F6442B70-4959-453C-ABBE-17BEA3B2482F}.Release|x86.ActiveCfg = Release|Win32
+		{F6442B70-4959-453C-ABBE-17BEA3B2482F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
